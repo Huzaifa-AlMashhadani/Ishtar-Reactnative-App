@@ -1,73 +1,47 @@
 import { View, Text, SafeAreaView, StyleSheet, ActivityIndicator, Pressable, Dimensions} from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FlatList } from 'react-native'
 import Color from '../contalors/Color'
 import { useRouter } from 'expo-router'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 
 const { height, width } = Dimensions.get('window');
 const Notification = () => {
-  const data = [
-  {
-   id : 1,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 2,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 3,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 4,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 5,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 6,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 7,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 8,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 9,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 10,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 11,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  },
-  {
-   id : 12,
-   title: "Order Wes Dilverd suscfyle",
-   body: "your order caled ali huseen wes dilvird , you have 100,000 IQD on your walt"
-  }
-];
+  const [data, setData]= useState([])
+  const [user_id, setUser_id] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const value = await AsyncStorage.getItem('userToken');
+        if (value !== null) {
+          setUser_id(value);
+        }
+      } catch (err) {
+        console.error("❌ خطأ في استرجاع :", err);
+      }
+    };
+    fetchUserId();
+  }, []);
+  useEffect(() => {
+    if (!user_id) return; // منع الاستدعاء إذا كان user_id غير متوفر
+
+    const fetchOrders = async () => {
+      try {
+
+        const response = await fetch(
+          `http://192.168.56.1/ishtarwebsite/php/ReactNativeNotification.php?not_user_id=${user_id}`
+        );
+        const jsonData = await response.json();
+        setData(jsonData);
+      } catch (err) {
+        setError("حدث خطأ أثناء جلب الطلبات: " + err.message);
+      }
+    };
+
+    fetchOrders();
+  }, [user_id]);
 
 
 const [loading, setLodaing] = useState(false);
@@ -75,6 +49,7 @@ const rotuer = useRouter()
 const showNoti = (notiID)=>{
 rotuer.push(`noti/${notiID}`);
 }
+console.log(user_id)
   return (
     <SafeAreaView>
       <Text style={styles.Title}>كل الأشعارات  </Text>
@@ -85,12 +60,26 @@ rotuer.push(`noti/${notiID}`);
         <FlatList
         data={data}
         style={styles.notis}
+
         keyExtractor={(item)=> item.id}
         renderItem={({item})=>(
              <View style={styles.noti}>
               <Pressable onPress={()=>showNoti(item.id)}>
-              <Text style={styles.title}>{item.title}</Text>
-              <Text style={styles.body} numberOfLines={1}>{item.body}</Text>
+                {item.not_status === "1" ? (
+                <View>
+                         <Text style={[styles.title, {color: "#000"}]}>{item.not_title}</Text>
+                         <View style={{flexDirection: "row", justifyContent: 'space-between'}}>
+                         <Text style={[styles.body, {color: "#000"}]} numberOfLines={1}>{item.not_body}</Text>
+                         <View style={{backgroundColor: "#111", width: 15, height: 15, borderRadius: 50, right: 0}}></View>
+                         </View>
+                </View>
+                ) :(
+                 <View>
+                   <Text style={styles.title}>{item.not_title}</Text>
+                   <Text style={styles.body} numberOfLines={1}>{item.not_body}</Text>
+                 </View>
+                )}
+
               </Pressable>
              </View>
         )}/>
@@ -123,12 +112,12 @@ noti:{
   direction: "rtl"
 },
 title:{
-  color: Color.light.text,
+  color: "#9b9999",
   fontWeight: "900",
   marginBottom: 5
 },
 body:{
-  color: "#666",
+  color: "#9b9999",
   fontWeight: '200',
   width: "90%",
   overflow: 'hidden'

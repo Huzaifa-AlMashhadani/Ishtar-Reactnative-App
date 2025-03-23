@@ -43,7 +43,7 @@ const Orders = () => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://localhost/ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
+          `http://192.168.0.107/ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
         );
         const jsonData = await response.json();
         setData(jsonData);
@@ -122,7 +122,7 @@ const searchQuery = "600";
         <View>
           <Image
             source={{
-              uri: `http://localhost/ishtarwebsite/php/Orders_images/${
+              uri: `http://192.168.0.107/ishtarwebsite/php/Orders_images/${
                 item.order_images.split(',')[0]
               }`,
             }}

@@ -7,6 +7,7 @@ import AntDesign from '@expo/vector-icons/AntDesign';
 import { Link } from 'expo-router';
 import useInternetStatus from "../useInternetStatus"; // استيراد الـ Hook
 import Images from '../../images/Images';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const AddOrders = () => {
   const [selectedImage1, setSelectedImage1] = useState(null);
@@ -19,6 +20,7 @@ const AddOrders = () => {
   const [descrption, setDescrption] = useState("");
   const [loading, setloding] = useState(false);
   const isConnected = useInternetStatus();
+  const [user_id, setUser_id] = useState("")
   // طلب الإذن للوصول إلى الاستوديو
   useEffect(() => {
     (async () => {
@@ -27,6 +29,20 @@ const AddOrders = () => {
         Alert.alert("صلاحيات مفقودة", "يجب منح الإذن للوصول إلى الاستوديو!");
       }
     })();
+  }, []);
+
+  useEffect(() => {
+    const fetchUserId = async () => {
+      try {
+        const value = await AsyncStorage.getItem('userToken');
+        if (value !== null) {
+          setUser_id(value);
+        }
+      } catch (err) {
+        console.error("❌ خطأ في استرجاع :", err);
+      }
+    };
+    fetchUserId();
   }, []);
 
   // دالة فتح الاستوديو لاختيار صورة
@@ -62,10 +78,12 @@ const AddOrders = () => {
       return;
     }
 
+   
+  
     const { name: name1, type: type1 } = getFileInfo(selectedImage1);
     const { name: name2, type: type2 } = getFileInfo(selectedImage2);
-
     const formData = new FormData();
+    formData.append("user_id", user_id);
     formData.append("ordernumber", ordernumber);
     formData.append("name", name);
     formData.append("number", number);
@@ -91,8 +109,8 @@ const AddOrders = () => {
     }
 
     try {
-      setloding(true)
-      const response = await fetch("http://192.168.0.104/ishtarwebsite/php/addorder.php", {
+      setloding(true);
+      const response = await fetch("http://192.168.56.1/ishtarwebsite/php/addorder.php", {
         method: "POST",
         body: formData,
         headers: {
@@ -102,9 +120,9 @@ const AddOrders = () => {
       });
 
       const responseData = await response.json();
-    console.log(responseData)
+
       if (responseData.status === "success") {
-        setloding(false)
+       
         Alert.alert("نجاح", "تم إرسال الطلب بنجاح!");
         setOrdernumber("");
         setName("");
@@ -114,10 +132,13 @@ const AddOrders = () => {
         setDescrption("");
         setSelectedImage1(null);
         setSelectedImage2(null);
+        setloding(false)
       } else {
         Alert.alert("خطأ", responseData.message);
+        setloding(false)
       }
     } catch (error) {
+      setloding(false)
       Alert.alert("خطأ", "فشل الإرسال، تحقق من الاتصال بالخادم.");
       console.error("Upload error:", error);
     }
@@ -141,12 +162,12 @@ const AddOrders = () => {
   }
 
   return (
-    <ScrollView>
-      <SafeAreaView style={{backgroundColor: "#333"}}>
-
+<View>
       {loading ? (
                     <ActivityIndicator size="100" style={{marginTop: '50%'}} color="#333" />
                   ) : (
+                    <ScrollView>
+                    <SafeAreaView style={{backgroundColor: "#333"}}>
                     <View style={styles.container}>
                     <View style={styles.addOrder}>
                       <Link href="createorder" style={styles.backBtn}><AntDesign name="arrowleft" size={24} color="black" /></Link>
@@ -236,11 +257,12 @@ const AddOrders = () => {
                       </View>
                     </View>
                   </View>
+                    
+      </SafeAreaView>
+      </ScrollView>
                   )}
 
-  
-      </SafeAreaView>
-    </ScrollView>
+</View>
   );
 };
 

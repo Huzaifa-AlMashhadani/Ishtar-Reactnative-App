@@ -21,30 +21,19 @@ const profile = () => {
   const [userImage, setUserImage] = useState("defult.jpg");
   const isConnected = useInternetStatus();
 
-  // ✅ جلب user_id عند تحميل المكون فقط
+  // ✅ جلب الطلبات فقط عندما يكون user_id متاحًا
   useEffect(() => {
-    const fetchUserId = async () => {
+    if (!user_id) return; // منع الاستدعاء إذا كان user_id غير متوفر
+
+    const fetchNotification = async () => {
       try {
         const value = await AsyncStorage.getItem('userToken');
   
         if (value !== null) {
           setUser_id(value);
         }
-      } catch (err) {
-        console.error("❌ خطأ في استرجاع user_id:", err);
-      }
-    };
-    fetchUserId();
-  }, []);
-
-  // ✅ جلب الطلبات فقط عندما يكون user_id متاحًا
-  useEffect(() => {
-    if (!user_id) return; // منع الاستدعاء إذا كان user_id غير متوفر
-
-    const fetchOrders = async () => {
-      try {
         const response = await fetch(
-          `http://192.168.56.1/ishtarwebsite/php/ReactnaitveUserDityles.php?user_id=${user_id}`
+          `http://192.168.0.112/ishtarwebsite/php/ReactnaitveUserDityles.php?user_id=${user_id}`
         );
         const jsonData = await response.json();
         setData(jsonData);
@@ -53,8 +42,8 @@ const profile = () => {
       }
     };
 
-    fetchOrders();
-  }, [user_id]); // 📌 يتم تنفيذ `fetchOrders` فقط عندما يتم تحديث `user_id`
+    fetchNotification();
+  }, [user_id]); // 📌 يتم تنفيذ `fetchNotification` فقط عندما يتم تحديث `user_id`
 
   if (!isConnected) {
     return (
@@ -74,7 +63,7 @@ const profile = () => {
         <Image style={styles.profileBackground} source={Images.profileBg}/>
         <View style={styles.profileBackgroundOpasty} ></View>
           <Link href="createorder" style={styles.backBtn}><AntDesign name="arrowleft" size={24} color="black" /></Link>
-        <Image style={styles.profileImage} source={{  uri: `http://192.168.56.1/ishtarwebsite/images/${userImage}` }}/>
+        <Image style={styles.profileImage} source={{  uri: `http://192.168.0.112/ishtarwebsite/images/${userImage}` }}/>
    
         </View>
         <View style={styles.userInfo}>
@@ -88,9 +77,11 @@ const profile = () => {
             <Pressable ><Text style={styles.btnupdete}>تحديث المعلومات </Text></Pressable>
             <Pressable onPress={logout}><Text style={[styles.btnupdete, {backgroundColor: Color.light.background, color: Color.light.mainColor, borderColor: "#ccc", borderWidth: 1}]}> تسجيل خروج </Text></Pressable>
           </View>
+  
         </View>
       </View>
     </View>
+
     </SafeAreaView>
   )
 }

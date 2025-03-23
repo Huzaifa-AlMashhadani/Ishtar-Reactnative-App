@@ -15,7 +15,6 @@ const { height, width } = Dimensions.get('window');
 const Login = () => {
 
     const navigation = useNavigation(); // الحصول على navigation باستخدام useNavigation
-
     const [Phnumber, setPhnumber] = useState("");
     const [password, setPassword] = useState("");
     const [res, setRes] = useState("");
@@ -29,7 +28,7 @@ const Login = () => {
         }
         setLoding(true)
         try {
-            const response = await axios.post('http://192.168.56.1/ishtarwebsite/php/login.php', {
+            const response = await axios.post('http://192.168.0.114/ishtarwebsite/php/login.php', {
                     PhnumberR: Phnumber,
                     passwordR: password,
             });

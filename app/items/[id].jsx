@@ -17,7 +17,7 @@ export default function ShowOrder(){
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.104/ishtarwebsite/php/ReactnaitveOrderShowen.php?id=${id}`
+          `http://192.168.56.1/ishtarwebsite/php/ReactnaitveOrderShowen.php?id=${id}`
         );
         const jsonData = await response.json();
         setData(jsonData);
@@ -52,10 +52,10 @@ export default function ShowOrder(){
                         <Text style={styles.textContact}>{data.descrption}</Text>
                     </View>
                     <View style={styles.orderFooter}>
-                        <Image source={{ uri: `http://192.168.0.104/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[0]}` }} style={styles.orderimage}/>
-                        <Image source={{ uri: `http://192.168.0.104/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[1]}` }} style={styles.orderimage}/>
-                        <Image source={{ uri: `http://192.168.0.104/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[2]}` }} style={styles.orderimage}/>
-                        <Image source={{ uri: `http://192.168.0.104/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[3]}` }} style={styles.orderimage}/>
+                        <Image source={{ uri: `http://192.168.56.1/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[0]}` }} style={styles.orderimage}/>
+                        <Image source={{ uri: `http://192.168.56.1/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[1]}` }} style={styles.orderimage}/>
+                        <Image source={{ uri: `http://192.168.56.1/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[2]}` }} style={styles.orderimage}/>
+                        <Image source={{ uri: `http://192.168.56.1/ishtarwebsite/php/Orders_images/${data.order_images?.split(',')[3]}` }} style={styles.orderimage}/>
                     </View>
                 </View>
             </View>
@@ -77,6 +77,7 @@ const styles = StyleSheet.create({
     },
     container:{
         // paddingTop: 150,
+        height: 900,
         justifyContent: 'center',
         alignItems: 'center',
         padding: 20,

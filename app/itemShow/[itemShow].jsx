@@ -6,11 +6,12 @@ import { useRef } from "react";
 import Feather from '@expo/vector-icons/Feather';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useState, useEffect } from 'react';
-import { ActivityIndicator,View, Text, SafeAreaView, Image, TextInput, StyleSheet, Pressable, Alert, ScrollView, Dimensions } from 'react-native';
+import { ActivityIndicator,View, Text, SafeAreaView, Image, TextInput, StyleSheet, Pressable, Alert, ScrollView, Dimensions, KeyboardAvoidingView, Platform } from 'react-native';
 import { useFonts, Mirza_500Medium, Mirza_700Bold } from '@expo-google-fonts/mirza';
 import Color from '../../contalors/Color';
 import useInternetStatus from "../useInternetStatus"; // استيراد الـ Hook
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from "react-native-reanimated";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 
 
@@ -34,7 +35,21 @@ export default function ShowItem(){
     const [loading, setloding] = useState(false);
     const isConnected = useInternetStatus();
     const [show, setShow] = useState(false)
+    const [user_id, setUser_id] = useState("")
 
+    useEffect(() => {
+      const fetchUserId = async () => {
+        try {
+          const value = await AsyncStorage.getItem('userToken');
+          if (value !== null) {
+            setUser_id(value);
+          }
+        } catch (err) {
+          console.error("❌ خطأ في استرجاع :", err);
+        }
+      };
+      fetchUserId();
+    }, []);
 
     // test anmadtion 
       const translateY = useSharedValue(1000); // يبدأ خارج الشاشة
@@ -124,22 +139,24 @@ export default function ShowItem(){
   };
 
   const handleSubmit = async () => {
-    
-    if (!ordernumber || !name || !number || !adrese || !price) {
-      Alert.alert("خطأ", "يرجى ملء جميع الحقول المطلوبة");
-      return;
-    }
+    setPrice(data.item_price);
+    setSelectedImage1(`http://192.168.56.1/ishtarwebsite/php/Orders_images/${data.item_images.split(",")[0]}`)
 
+
+    if (loading) return; // 🔴 منع تنفيذ الطلب أثناء التحميل
+   
     const { name: name1, type: type1 } = getFileInfo(selectedImage1);
     const { name: name2, type: type2 } = getFileInfo(selectedImage2);
 
     const formData = new FormData();
+    
+    formData.append("user_id", user_id);
     formData.append("ordernumber", ordernumber);
     formData.append("name", name);
     formData.append("number", number);
     formData.append("adrese", adrese);
     formData.append("ClintPrice", price);
-    formData.append("descrption", descrption + data.item_title);
+    formData.append("descrption", descrption);
 
     // إضافة الصور إلى formData
     if (selectedImage1) {
@@ -157,9 +174,10 @@ export default function ShowItem(){
         type: type2 || "image/jpeg",
       });
     }
-
+    setloding(true)
     try {
-      setloding(true)
+   
+
       const response = await fetch("http://192.168.56.1/ishtarwebsite/php/addorder.php", {
         method: "POST",
         body: formData,
@@ -172,7 +190,6 @@ export default function ShowItem(){
       const responseData = await response.json();
     console.log(responseData)
       if (responseData.status === "success") {
-        setloding(false)
         Alert.alert("نجاح", "تم إرسال الطلب بنجاح!");
         setOrdernumber("");
         setName("");
@@ -182,10 +199,13 @@ export default function ShowItem(){
         setDescrption("");
         setSelectedImage1(null);
         setSelectedImage2(null);
+        setloding(false)
       } else {
+        setloding(false)
         Alert.alert("خطأ", responseData.message);
       }
     } catch (error) {
+      setloding(false)
       Alert.alert("خطأ", "فشل الإرسال، تحقق من الاتصال بالخادم.");
       console.error("Upload error:", error);
     }
@@ -195,12 +215,21 @@ export default function ShowItem(){
     Mirza_500Medium,
     Mirza_700Bold,
   });
+  if (loading) {
+    return (
+                     <View style={{flex: 1, justifyContent: "center", alignItems: "center"}}>
+                      <ActivityIndicator size="small" color={Color.light.mainColor} />
+                     </View>
+   
+    );
+  }
 
     return (
+     
       <SafeAreaView style={{ flex: 1 }}>
       {/* شريط التنقل */}
       <View style={styles.navBar}>
-        <Text style={{ color: "#333" }}>ID : {data.item_id}</Text>
+        <Text style={{ color: "#333" }}> {data.item_title}</Text>
         <Pressable onPress={() => router.push("createorder")} style={styles.backBtn}>
           <AntDesign name="arrowleft" size={28} color={Color.light.mainColor}  />
           {/* <MaterialIcons name="arrow-back-ios" size={30} color={Color.light.mainColor} style={{backgroundColor: "rgba(255, 255, 255, 0.3)", padding: 6, borderRadius:4}} /> */}
@@ -318,16 +347,21 @@ export default function ShowItem(){
       </View>
     
       {show ? (
+                 
         <Animated.View style={[styles.addOrder, animatedStyles]}>
           {/* استخدام <Link> بدون تغليف الأيقونة داخل <Text> */}
-  
+          <KeyboardAvoidingView
+  behavior={Platform.OS === "ios" ? "padding" : "height"}
+  style={{ flex: 1 }}
+>
+          <ScrollView style={{height: height}} contentContainerStyle={{height: 2500}}>
           <Text style={styles.title}>إنشاء طلب جديد</Text>
     
           <View style={styles.imagesContainer}>
             {/* الصورة الأولى */}
             <Pressable
               style={styles.imageWrapper}
-              onPress={() => selectImage(setSelectedImage1)}
+              // onPress={() => selectImage(setSelectedImage1)}
             >
               <Image
                 source={{
@@ -393,7 +427,6 @@ export default function ShowItem(){
             style={styles.input}
             placeholder=" 49000 IQD"
             placeholderTextColor="rgb(164, 164, 164)"
-            onChangeText={setPrice}
             value={`${(Number(data.item_price / 1000)).toFixed(3)} IQD`}
           />
           <Text style={styles.inputTitle}>   الوصف   </Text>
@@ -408,13 +441,18 @@ export default function ShowItem(){
     
           <View style={styles.buttons}>
             <Pressable onPress={handleSubmit}>
-              <Text style={styles.button}>إرسال</Text>
+            <Text style={styles.button}>
+    {loading ? "جاري الإرسال..." : "إرسال "}
+  </Text>
             </Pressable>
             <Pressable onPress={() => test()}>
               <Text style={styles.buttonDis}>الغاء</Text>
             </Pressable>
           </View>
+          </ScrollView> 
+          </KeyboardAvoidingView>
         </Animated.View>
+
       ) : (
         <View />
       )}
@@ -549,7 +587,7 @@ const styles = StyleSheet.create({
         backgroundColor: Color.light.waithColor,
         width: "100%",
         top: 0,
-        minHeight: height,
+        minHeight: height + 1000,
         paddingTop: 20,
         paddingHorizontal: 10
     },

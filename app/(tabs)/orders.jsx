@@ -87,7 +87,7 @@ const Orders = () => {
     const fetchOrders = async () => {
       try {
         const response = await fetch(
-          `http://192.168.0.104/ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
+          `http://192.168.56.1/ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
         );
         const jsonData = await response.json();
         setData(jsonData);
@@ -108,7 +108,7 @@ const Orders = () => {
     setLoading(true);
     try {
       const response = await fetch(
-        `http://192.168.0.104/ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
+        `http://192.168.0.1007ishtarwebsite/php/ReactNativeControlerShoworders.php?user_id=${user_id}`
       );
       const responseData = await response.json();
       setData(responseData);
@@ -298,7 +298,7 @@ const Orders = () => {
               <View>
                 <Image
                   source={{
-                    uri: `http://192.168.0.104/ishtarwebsite/php/Orders_images/${item.order_images.split(',')[0]}`,
+                    uri: `http://192.168.56.1/ishtarwebsite/php/Orders_images/${item.order_images.split(',')[0]}`,
                   }}
                   style={styles.LastOrderimage}
                 />

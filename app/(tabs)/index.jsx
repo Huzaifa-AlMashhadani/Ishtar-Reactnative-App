@@ -14,9 +14,11 @@ import useInternetStatus from "../useInternetStatus"; // استيراد الـ H
 
 export default function Index() {
   const [data, setData] = useState([]);
+  const [nots, setNots] = useState([]);
   const [searchData, setSearchData] = useState([]);
   const [error, setError] = useState(null);
   const [user_id, Setuser_id] = useState(null)
+  const [user_Id, setUser_Id] = useState(null)
   const [user_Image, setUser_image] = useState("defult.jpg");
   const [filterShow, setFilterShow] = useState(false);
   const [filterBtnActive, setFilterBtnActive] = useState(null);
@@ -46,6 +48,7 @@ export default function Index() {
           setError(err.message);
         });
     }, []);
+  
     const onRefresh = () => {
       setRefreshing(true);
       setTimeout(() => {
@@ -92,10 +95,12 @@ export default function Index() {
   const getUserToken = async () => {
     try {
       const value = await AsyncStorage.getItem('name'); // استرجاع القيمة كنص
+      const id = await AsyncStorage.getItem('userToken'); // استرجاع القيمة كنص
   
       if (value !== null) {
 
         Setuser_id(value)
+        setUser_Id(id)
       } else {
         console.log('❌ لا توجد بيانات مخزنة!');
       }
@@ -154,6 +159,26 @@ export default function Index() {
       setSearchQuery(val)
     }
   }
+  
+  useEffect(() => {
+    if (!user_id) return; // منع الاستدعاء إذا كان user_id غير متوفر
+
+    const fechNotification = async () => {
+      try {
+
+        const response = await fetch(
+          `http://192.168.56.1/ishtarwebsite/php/ReactNativeNotification.php?not_user_id=${user_Id}`
+        );
+        const jsonData = await response.json();
+        setNots(jsonData);
+      } catch (err) {
+        setError("حدث خطأ أثناء جلب الطلبات: " + err.message);
+      }
+    };
+
+    fechNotification();
+  }, [user_id]);
+  const Notification = nots.filter(not => String(not.not_status) == "1");
   if (!isConnected) {
     return (
       <View style={styles.noInterntPage}>
@@ -183,7 +208,13 @@ export default function Index() {
   
     <View style={styles.navbar}>
       <View style={styles.header}>
-       <Link href="Notification"><Text><EvilIcons name="bell" size={24} color={Color.light.text} style={styles.logo} /></Text> </Link>
+        {Notification.length > 0 ?(
+      <View style={styles.notsNumber}><Text style={{color:"#fff", fontSize: 10}}>{Notification.length}</Text></View>
+
+        ):(
+          <></>
+        )}
+       <Link href="Notification"><Text><EvilIcons name="bell" size={24} color={Color.light.text} style={styles.logo} /></Text>  </Link>
         <View style={styles.headerAcount}>
           <View>       
             <Text style={[styles.AcountName, {textAlign: 'right'}]}>Hi </Text>
@@ -590,5 +621,17 @@ noResult: { textAlign: "center", fontSize: 16, marginTop: 20, color: "gray" },
     height: 200,
     marginBottom: 50
   },
+  notsNumber:{
+    backgroundColor: Color.light.mainColor,
+    color: "#fff",
+    borderRadius: 50,
+    fontWeight: "400",
+    position:'absolute',
+    marginLeft:15,
+    top:5,
+    padding: 2,
+    paddingHorizontal:6,
+    zIndex: 3
+  }
 
 })

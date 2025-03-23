@@ -1,11 +1,29 @@
 import { View, Text , StyleSheet} from 'react-native'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { useLocalSearchParams } from 'expo-router'
 import Color from '../../contalors/Color';
 
 const noti = () => {
 
   const {notiID} = useLocalSearchParams();
+    useEffect(() => {
+      if (!notiID) return; // منع الاستدعاء إذا كان user_id غير متوفر
+  
+      const fetchOrders = async () => {
+        try {
+          const response = await fetch(
+            `http://192.168.56.1/ishtarwebsite/php/ReactNativeNotificationnsUpdeteStatus.php?not_id=${notiID}`
+          );
+          const jsonData = await response.json();
+          console.log(jsonData);
+        } catch (err) {
+          console.log("حدث خطأ أثناء جلب الطلبات: " + err.message);
+        }
+      };
+  
+      fetchOrders();
+    }, [notiID]); // 📌 يتم تنفيذ `fetchOrders` فقط عندما يتم تحديث `user_id`
+  console.log(notiID)
   return (
     <View style={styles.notif}>
        <Text style={styles.title}>title</Text>
